@@ -1,0 +1,18 @@
+Ritmo — Local website (page version ritmo-v7)
+
+Open index.html in Chrome, Safari or Edge. Keep the assets folder beside it.
+Images, styles and interactions are included. Google Fonts requires internet; system fonts are used offline.
+
+Email signup
+- "Notify me when it launches" opens a dialog. An email address and consent are required to join the list;
+  the "which part speaks to you most?" question appears only after the email is saved, and is optional.
+- Emails, clicks and page views are sent to a free Google Apps Script + Google Sheets backend.
+  Set it up with ../Ritmo-Signup-Backend/部署说明.md, then fill in endpoint, contactEmail and deleteBy
+  in signup-config.js. Until all three are set, email submission stays disabled.
+- Results (funnel and feedback) appear in the Summary tab of the Google Sheet.
+
+In-person research
+- Open index.html?demo=1 for the presenter panel. Start each participant before presenting.
+- The panel tally is local to the device and never contains email addresses; the Google Sheet holds every device.
+
+Saved from the current published website on 2026-11-20; updated locally afterwards.
