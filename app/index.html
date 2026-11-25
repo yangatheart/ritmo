@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1c100b">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="description" content="Ritmo plans your coffee into the gaps between calls, so it is hot when you are free.">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<title>Ritmo</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* VOICE: a premium coffee product: warm, unhurried, exact
+   IDEA: a café's pass: one cup under a light, timed to the second
+   PICTURE: espresso card with a live cup and a ring for brew progress or temperature
+   COLOUR and TYPE: roast brown and warm white, crema tones, tomato accent; Sora numerals + Inter
+   LAYOUT: one column, max 480px, sticky tab bar, safe-area padding */
+:root{color-scheme:light dark;
+--bg:light-dark(#ffffff,#110a07);--bg2:light-dark(#f5f0eb,#1d130e);--ink:light-dark(#1f1510,#f4ece4);--mut:light-dark(#7d6d62,#a89587);
+--line:light-dark(#ebe3db,#2e221b);--roast:#1c100b;--roast2:#2e1b12;--crema:#d9a66a;--foam:#f6ede3;
+--acc:#e04a2f;--ok:light-dark(#11795c,#3cbf93);--okl:#5fd3a8;--warn:#e3a04a}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{margin:0;background:var(--roast);color:var(--ink);font:16px/1.5 Inter,system-ui,sans-serif;overflow-x:clip}
+h1,h2,h3{font-family:Sora,Inter,sans-serif;margin:0;line-height:1.1;text-wrap:balance;font-weight:600}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer;border:0;border-radius:14px;min-height:44px;padding:0 16px;background:none}
+button:focus-visible,input:focus-visible,label:focus-within{outline:3px solid #ff9c84;outline-offset:2px}
+button:disabled{opacity:.4;cursor:not-allowed}
+.app{max-width:480px;margin:0 auto;min-height:100dvh;background:var(--bg);display:flex;flex-direction:column;position:relative}
+.sbar{display:flex;justify-content:space-between;align-items:center;padding:calc(env(safe-area-inset-top) + 10px) 18px 4px;position:sticky;top:0;background:var(--bg);z-index:3}
+.logo{padding:0;min-height:40px;font:600 20px Sora,sans-serif;display:flex;gap:9px;align-items:center;letter-spacing:-.01em}
+.logo svg{width:28px;height:28px}
+.sync{font-size:13px;color:var(--mut);padding:0 2px;min-height:40px}
+.view{flex:1;padding:6px 18px 28px;animation:fade .25s ease}
+@keyframes fade{from{opacity:.4}to{opacity:1}}
+.nav{display:flex;border-top:1px solid var(--line);background:var(--bg);position:sticky;bottom:0;padding-bottom:env(safe-area-inset-bottom);z-index:3}
+.nav button{flex:1;color:var(--mut);border-radius:0;min-height:60px;font-size:12px;font-weight:600;display:grid;place-items:center;padding:6px 0}
+.nav svg{width:22px;height:22px}.nav button[aria-current=true]{color:var(--ink)}.nav button[aria-current=true] svg{color:var(--acc)}
+.hd{display:flex;justify-content:space-between;align-items:center;margin:8px 0 16px;gap:10px}
+.hd h2{font-size:30px}.hd small{display:block;color:var(--mut);font-size:14px;margin-top:4px}
+.chip{font-size:13px;font-weight:600;padding:0 12px;min-height:34px;border-radius:99px;background:var(--bg2);white-space:nowrap;display:inline-flex;align-items:center;gap:6px}
+.chip .dot{width:8px;height:8px;border-radius:50%;background:var(--ok)}.chip.off .dot{background:var(--warn)}.chip.demo{background:var(--acc);color:#fff}
+/* hero */
+.hero{position:relative;border-radius:28px;padding:18px 18px 20px;margin-bottom:22px;color:var(--foam);overflow:hidden;
+  background:radial-gradient(120% 90% at 20% 0%,#4a2c1c 0%,var(--roast2) 45%,var(--roast) 100%);box-shadow:0 18px 40px -18px #1c100b99}
+.hero .grid{display:grid;grid-template-columns:138px minmax(0,1fr);gap:14px;align-items:center}
+@media(max-width:350px){.hero .grid{grid-template-columns:minmax(0,1fr)}.hero .cup{justify-self:center}}
+.hero .cup svg{width:138px;height:138px;display:block}
+.hero .k{font-size:14px;color:#d8c2b0}.hero .k b{color:var(--crema);font-weight:600}
+.hero h3{font:600 clamp(40px,12vw,52px)/1 Sora,sans-serif;margin:6px 0 6px;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.hero h3 small{font-size:16px;font-weight:400;color:#d8c2b0;margin-left:6px;letter-spacing:0}
+.hero p{margin:0;font-size:15px;color:#eadbcd}
+.hero .acts{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
+.hero .why{margin-top:14px;padding-top:12px;border-top:1px solid #ffffff1c;display:flex;gap:6px;flex-wrap:wrap}
+.tag{font-size:13px;padding:4px 10px;border-radius:99px;background:#ffffff14;color:#f0e2d4;white-space:nowrap}
+.tag.bad{background:#e04a2f33;color:#ffc2b5}.tag.good{background:#3cbf9326;color:#b8f0da}
+.btn{background:var(--foam);color:var(--roast);font-weight:600}
+.btn2{box-shadow:inset 0 0 0 1.5px #ffffff55;color:var(--foam);font-weight:600}
+.btn.red{background:var(--acc);color:#fff}
+.b1{background:var(--ink);color:var(--bg);font-weight:600}
+.b2{box-shadow:inset 0 0 0 1.5px var(--line);font-weight:600}
+.big{width:100%;background:var(--acc);color:#fff;font-weight:600;font-size:17px;min-height:56px;border-radius:18px}
+.ghost{width:100%;background:var(--bg2);font-weight:600}
+/* timeline */
+.sec{font-size:18px;margin:0 0 4px;display:flex;justify-content:space-between;align-items:baseline}.sec span{font:400 13px Inter;color:var(--mut)}
+.tl{list-style:none;margin:0 0 0 6px;padding:0;position:relative}
+.tl::before{content:"";position:absolute;left:52px;top:8px;bottom:8px;width:2px;background:var(--line)}
+.tl>li{display:grid;grid-template-columns:46px 16px minmax(0,1fr);gap:8px;align-items:start;padding:7px 0;position:relative}
+.tl time{font:600 14px Sora,sans-serif;font-variant-numeric:tabular-nums;white-space:nowrap;padding-top:9px}
+.tl .pin{width:12px;height:12px;border-radius:50%;margin:12px 0 0 1px;background:var(--bg);box-shadow:inset 0 0 0 2px var(--line);z-index:1}
+.tl .busy{background:var(--bg2);border-radius:12px;padding:8px 12px;font-size:14px;color:var(--mut)}
+.tl li.now .pin{background:var(--acc);box-shadow:0 0 0 4px #e04a2f33}
+.tl li.past{opacity:.5}
+.tl .cof{border-radius:14px;padding:8px 12px;box-shadow:inset 0 0 0 1.5px var(--line);display:block;width:100%;text-align:left;min-height:0}
+.tl .cof.on{background:linear-gradient(135deg,#2e1b12,#4a2c1c);color:var(--foam);box-shadow:none}
+.tl .cof b{font-size:15px;font-weight:600}.tl .cof small{display:block;font-size:13px;opacity:.75}
+.tl li.c .pin{background:var(--crema);box-shadow:none}.tl li.c.offc .pin{background:var(--bg);box-shadow:inset 0 0 0 2px var(--crema)}
+.st{font-size:12px;font-weight:600;padding:1px 8px;border-radius:99px;background:#ffffff1f;margin-left:6px;white-space:nowrap}
+.cof:not(.on) .st{background:var(--bg2)}
+.edit{grid-column:3;background:var(--bg2);border-radius:14px;padding:12px;margin-top:-2px}
+.edit .row{display:flex;gap:6px;flex-wrap:wrap;align-items:center}.edit+.edit{margin-top:8px}
+.seg{display:flex;gap:6px;flex-wrap:wrap}
+.seg button{min-height:38px;padding:0 12px;border-radius:99px;background:var(--bg);font-size:14px;font-weight:600;box-shadow:inset 0 0 0 1.5px var(--line)}
+.seg button[aria-pressed=true]{background:var(--ink);color:var(--bg);box-shadow:none}
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:20px 0 14px}
+.stats div{background:var(--bg2);border-radius:16px;padding:12px 10px}.stats b{font:600 24px/1 Sora,sans-serif;display:block}.stats span{font-size:12px;color:var(--mut);line-height:1.25;display:block;margin-top:6px}
+/* cards & settings */
+.card{background:var(--bg2);border-radius:20px;padding:16px;margin-bottom:12px}
+.card h3{font-size:17px;margin-bottom:6px}.card p{margin:0;font-size:14px;color:var(--mut)}
+.set{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--line)}
+.set:last-child{border:0;padding-bottom:2px}.set:first-child{padding-top:2px}.set b{display:block;font-size:15px;font-weight:600}.set span{font-size:13px;color:var(--mut)}
+.set.col{flex-direction:column;align-items:stretch}
+.step{display:flex;align-items:center;gap:4px;flex:none}.step button{min-width:42px;padding:0;background:var(--bg);font-size:20px}
+.step output{min-width:58px;text-align:center;font-weight:600;font-variant-numeric:tabular-nums}
+.sw{width:52px;min-height:32px;height:32px;padding:0;border-radius:99px;background:var(--line);position:relative;flex:none}
+.sw::after{content:"";position:absolute;top:3px;left:3px;width:26px;height:26px;border-radius:50%;background:#fff;transition:left .2s;box-shadow:0 1px 3px #0003}
+.sw[aria-pressed=true]{background:var(--ok)}.sw[aria-pressed=true]::after{left:23px}
+.week{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px;margin-top:8px}
+.week button{min-height:52px;padding:0;border-radius:12px;background:var(--bg);font-size:13px;font-weight:600;display:grid;place-items:center;line-height:1.1}
+.week button small{font-size:11px;font-weight:500;color:var(--mut)}.week button.home{background:var(--ink);color:var(--bg)}.week button.home small{color:inherit;opacity:.7}
+.lvl{display:grid;grid-template-columns:96px minmax(0,1fr) auto;gap:10px;align-items:center;font-size:14px;padding:6px 0}
+.bar{height:8px;border-radius:9px;background:var(--line);overflow:hidden}.bar i{display:block;height:100%;background:var(--ok)}.bar i.lo{background:var(--acc)}
+.mstage{border-radius:28px;padding:16px;margin-bottom:14px;color:var(--foam);background:radial-gradient(100% 80% at 50% 0%,#4a2c1c,var(--roast))}
+.mstage .top{display:flex;justify-content:space-between;align-items:center}.mstage svg{display:block;margin:4px auto 0;width:200px;height:200px}
+.mstage .seg button{background:#ffffff14;box-shadow:none;color:var(--foam)}.mstage .seg button[aria-pressed=true]{background:var(--foam);color:var(--roast)}
+.err{font-size:14px;background:light-dark(#fde8e3,#3a1a12);color:light-dark(#8f2414,#ffb4a3);padding:10px 12px;border-radius:12px;margin:8px 0}
+.priv{font-size:13px;color:var(--mut);margin:12px 2px}
+.busyed{list-style:none;padding:0;margin:0 0 8px}.busyed li{display:flex;justify-content:space-between;align-items:center;padding:2px 0;border-bottom:1px solid var(--line);font-variant-numeric:tabular-nums}
+.busyed button{color:var(--acc);font-weight:600;padding:0 6px}
+.addb{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) auto;gap:8px;align-items:end}
+.addb label{font-size:13px;color:var(--mut)}.addb input{width:100%;min-height:44px;font-size:16px;border:1px solid var(--line);border-radius:12px;padding:0 8px;background:var(--bg)}
+.file{display:flex;align-items:center;justify-content:center;min-height:48px;border-radius:14px;background:var(--bg);font-weight:600;cursor:pointer;box-shadow:inset 0 0 0 1.5px var(--line)}
+.file input{position:absolute;opacity:0;width:1px;height:1px}
+.log{list-style:none;margin:0;padding:0;font-size:14px}.log li{display:flex;gap:10px;padding:7px 0;border-bottom:1px solid var(--line)}.log time{font-weight:600;color:var(--acc);flex:none;font-variant-numeric:tabular-nums}
+/* banner */
+.banner{position:fixed;left:50%;width:min(456px,calc(100% - 24px));top:calc(env(safe-area-inset-top) + 8px);background:var(--roast);color:var(--foam);border-radius:20px;padding:12px 14px;font-size:15px;box-shadow:0 16px 40px #0007;transform:translate(-50%,-160%);transition:transform .35s cubic-bezier(.2,.8,.2,1);z-index:9}
+.banner:not(.show){visibility:hidden;transition:transform .35s,visibility 0s .35s}.banner.show{transform:translate(-50%,0)}
+.banner b{display:block;font-size:12px;color:var(--crema);margin-bottom:2px;font-weight:600}
+.banner .row{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}.banner button{min-height:38px;background:#ffffff1f;font-weight:600;font-size:14px}.banner button:first-child{background:var(--foam);color:var(--roast)}
+/* onboarding */
+.onb{position:fixed;inset:0;z-index:8;overflow-y:auto;background:radial-gradient(120% 70% at 50% 0%,#4a2c1c,var(--roast) 70%);color:var(--foam)}
+.onb>div{max-width:480px;margin:auto;min-height:100%;padding:calc(env(safe-area-inset-top) + 28px) 24px calc(env(safe-area-inset-bottom) + 24px);display:flex;flex-direction:column}
+.onb h2{font-size:34px;margin:8px 0 10px}.onb p{color:#dcc8b7;margin:0 0 16px}
+.onb .dots{display:flex;gap:6px;margin-bottom:12px}.onb .dots i{width:22px;height:4px;border-radius:4px;background:#ffffff2a}.onb .dots i.on{background:var(--crema)}
+.onb .card{background:#ffffff10;color:var(--foam)}.onb .card p,.onb .set span{color:#cdb7a5}.onb .set{border-color:#ffffff18}
+.onb .step button,.onb .week button,.onb .seg button,.onb .file,.onb .addb input{background:#ffffff14;color:var(--foam);box-shadow:none;border-color:#ffffff22}
+.onb .week button.home,.onb .seg button[aria-pressed=true]{background:var(--foam);color:var(--roast)}
+.onb .pick{display:flex;align-items:center;gap:14px;width:100%;text-align:left;background:#ffffff10;border-radius:18px;padding:14px 16px;margin-bottom:10px;min-height:64px}
+.onb .pick b{display:block;font-size:16px}.onb .pick small{color:#cdb7a5;font-size:13px}.onb .pick svg{flex:none;width:28px;height:28px;color:var(--crema)}
+.onb .priv{color:#bfa898}.onb .busyed li{border-color:#ffffff18}
+.onb .foot{margin-top:auto;padding-top:18px;display:grid;gap:8px}
+.onb .ghost{background:#ffffff12;color:var(--foam)}
+.onb .heroimg{display:flex;justify-content:center;margin:12px 0 4px}.onb .heroimg svg{width:min(260px,70vw);height:auto}
+/* demo */
+.demo{background:var(--roast);color:var(--foam);padding:10px 18px;display:grid;gap:8px;position:sticky;top:54px;z-index:2}
+.demo .row{display:flex;gap:6px;flex-wrap:wrap}.demo .row button{background:#ffffff14;font-size:13px;font-weight:600;min-height:38px;padding:0 11px}
+.demo .row button[aria-pressed=true]{background:var(--foam);color:var(--roast)}.demo .go{background:var(--acc)!important;color:#fff}
+.demo output{font:600 28px/1 Sora,sans-serif;font-variant-numeric:tabular-nums;margin-right:auto}
+.demo .top{display:flex;align-items:center;gap:8px}.demo summary{cursor:pointer;font-size:14px;color:#d8c4b4;min-height:32px;display:flex;align-items:center}
+@keyframes rise{0%{opacity:0;transform:translateY(8px)}40%{opacity:.9}100%{opacity:0;transform:translateY(-14px)}}
+.steam path{animation:rise 2.6s infinite ease-out}.steam path:nth-child(2){animation-delay:.8s}.steam path:nth-child(3){animation-delay:1.6s}
+@keyframes pour{to{stroke-dashoffset:-24}}.pour{animation:pour .6s linear infinite}
+@keyframes glow{50%{opacity:.55}}.glow{animation:glow 1.6s ease-in-out infinite}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="sbar">
+    <button class="logo" id="logo" aria-label="Ritmo"><svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="30" fill="#e04a2f"/><path d="M19 27h24v9a10 10 0 0 1-10 10h-4a10 10 0 0 1-10-10z" fill="#fff"/><path d="M43 30h3a4 4 0 0 1 0 8h-3" stroke="#fff" stroke-width="3" fill="none"/><path d="M27 18c-2 3 2 4 0 7M35 18c-2 3 2 4 0 7" stroke="#fff" stroke-width="2.5" fill="none" stroke-linecap="round"/></svg>Ritmo</button>
+    <button class="sync" id="sync" data-a="syncbar"></button>
+  </header>
+  <div id="demo"></div>
+  <main class="view" id="view"></main>
+  <nav class="nav" id="nav"></nav>
+</div>
+<div class="banner" id="ban" role="status" aria-live="polite"></div>
+<div id="onb"></div>
+
+<script>
+{
+/* ================= constants & helpers ================= */
+const KEY='ritmo.app.v2',STEP=15,HEAT=60,H=3600,M=60;
+const DR={ristretto:{n:'Ristretto',brew:20,water:5,tau:11,fill:.3},espresso:{n:'Espresso',brew:30,water:7,tau:14,fill:.45},lungo:{n:'Lungo',brew:50,water:12,tau:18,fill:.65},americano:{n:'Americano',brew:90,water:24,tau:26,fill:.85}};
+const PEND=['planned','checked','alert'],LIVE=['heating','brewing','ready','held'],DONE=['collected','cold','skipped','passed'];
+const $=id=>document.getElementById(id);
+const pad=n=>String(n).padStart(2,'0');
+const fmt=s=>{const m=Math.floor(s/60);return pad(Math.floor(m/60)%24)+':'+pad(m%60)};
+const dur=s=>{const m=Math.round(s/60);return m>=60?Math.floor(m/60)+' h'+(m%60?' '+m%60+' min':''):m+' min'};
+const esc=s=>String(s).replace(/[&<>"']/g,c=>'&#'+c.charCodeAt(0)+';');
+const dayKey=d=>d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+const nowSec=()=>{const d=new Date();return d.getHours()*H+d.getMinutes()*M+d.getSeconds()};
+const cap=s=>s.charAt(0).toUpperCase()+s.slice(1);
+const WD=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'],TYPES={home:'Home day',office:'Office day',off:'Day off'};
+const SAMPLE=[[9,9.5],[9.5,10.5],[10+40/60,11.5],[11.5,12],[13,14],[14,14.75],[15,16]].map(([s,e])=>({s:Math.round(s*H),e:Math.round(e*H)}));
+const SRV={google:{server:'Google Calendar',tool:'list_events',name:'Google Calendar'},outlook:{server:'Microsoft 365',tool:'outlook_calendar_search',name:'Outlook'}};
+const inClaude=typeof window.claude!=='undefined';
+const ICON={today:'<path d="M4 6h16v14H4zM4 10h16M8 3v5M16 3v5" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>',
+  machine:'<path d="M6 3h12v18H6zM9 7h6M9 13h6v5H9z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>',
+  routine:'<circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 7v5l3 2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>'};
+
+/* ================= state ================= */
+const baseSet=()=>({max:3,start:8.5*H,cutoff:15*H,end:18*H,spacing:90,walk:2,drink:'espresso',auto:true,heads:true,notif:false,week:['off','home','home','home','home','home','off']});
+const baseMach=()=>({water:70,bin:4,binMax:10,descale:38,pod:true,cup:true,state:'standby'});
+const dayState=()=>({date:dayKey(new Date()),type:null,plan:[],log:[],k:{onTime:0,cold:0,held:0,saved:0},over:null,paused:false,seq:0,open:null,forget:false,manual:[]});
+const fresh=()=>Object.assign({onb:0,src:null,set:baseSet(),m:baseMach(),busy:[],busyDate:null,ics:null,sync:{},t:nowSec(),tab:'today',demo:false},dayState());
+function load(){try{const r=JSON.parse(localStorage.getItem(KEY));if(r&&r.set&&r.set.week)return Object.assign(fresh(),r,{demo:false})}catch(e){}return null}
+function save(){if(S.demo)return;try{localStorage.setItem(KEY,JSON.stringify(Object.assign({},REAL,{confirmReset:false,open:null})))}catch(e){}}
+let REAL=load()||fresh(),S=REAL,mcp=null,banT,syncing=false;
+
+/* ================= calendar → busy blocks ================= */
+function merge(list){const o=list.filter(b=>b.e>b.s).sort((a,b)=>a.s-b.s),m=[];for(const b of o){const l=m[m.length-1];if(l&&b.s<=l.e)l.e=Math.max(l.e,b.e);else m.push({s:b.s,e:b.e})}return m}
+function busyNow(){if(S.demo)return S.busy;const today=dayKey(new Date());
+  if(S.src==='manual')return merge(S.manual);
+  if(S.src==='ics')return S.ics?icsBusy(S.ics.ev,new Date()):[];
+  if(SRV[S.src])return S.busyDate===today?S.busy:[];
+  return []}
+/* .ics: VEVENTs with DAILY/WEEKLY recurrence, EXDATE and moved instances */
+function icsParse(text){const lines=text.replace(/\r\n[ \t]/g,'').replace(/\n[ \t]/g,'').split(/\r?\n/),ev=[];let cur=null;
+  const pd=(v,p)=>{const m=v.match(/^(\d{4})(\d\d)(\d\d)(?:T(\d\d)(\d\d)(\d\d)?(Z)?)?$/);if(!m)return null;if(!m[4])return{allDay:true};
+    const a=[+m[1],+m[2]-1,+m[3],+m[4],+m[5],+(m[6]||0)];return{t:(m[7]?Date.UTC(...a):new Date(...a).getTime())}};
+  for(const raw of lines){const i=raw.indexOf(':');if(i<0)continue;const head=raw.slice(0,i),val=raw.slice(i+1).trim(),name=head.split(';')[0].toUpperCase();
+    if(raw.startsWith('BEGIN:VEVENT')){cur={ex:[]};continue}
+    if(raw.startsWith('END:VEVENT')){if(cur&&cur.s&&!cur.allDay&&!cur.skip){if(!cur.e)cur.e=cur.s+(cur.d||H);ev.push({s:cur.s,e:cur.e,r:cur.r||null,ex:cur.ex,u:cur.u||'',rid:cur.rid||null})}cur=null;continue}
+    if(!cur)continue;
+    if(name==='DTSTART'){const d=pd(val);if(d&&d.allDay)cur.allDay=true;else if(d)cur.s=d.t}
+    else if(name==='DTEND'){const d=pd(val);if(d&&d.t)cur.e=d.t}
+    else if(name==='DURATION'){const m=val.match(/P(?:(\d+)D)?(?:T(?:(\d+)H)?(?:(\d+)M)?)?/);if(m)cur.d=((+m[1]||0)*24*H+(+m[2]||0)*H+(+m[3]||0)*M)*1000}
+    else if(name==='RRULE')cur.r=val;
+    else if(name==='EXDATE')val.split(',').forEach(x=>{const d=pd(x.trim());if(d&&d.t)cur.ex.push(dayKey(new Date(d.t)))});
+    else if(name==='UID')cur.u=val;
+    else if(name==='RECURRENCE-ID'){const d=pd(val);if(d&&d.t)cur.rid=dayKey(new Date(d.t))}
+    else if(name==='STATUS'&&/CANCELLED/i.test(val))cur.skip=true;
+    else if(name==='TRANSP'&&/TRANSPARENT/i.test(val))cur.skip=true}
+  const cutoff=Date.now()-30*864e5;return ev.filter(e=>e.r||e.e>cutoff).slice(0,3000)}
+function icsBusy(ev,date){const key=dayKey(date),d0=new Date(date.getFullYear(),date.getMonth(),date.getDate()).getTime(),out=[];
+  const moved=new Set(ev.filter(e=>e.rid).map(e=>e.u+'|'+e.rid));
+  const secOf=t=>{const d=new Date(t);return d.getHours()*H+d.getMinutes()*M};
+  for(const e of ev){const len=e.e-e.s,sd=new Date(e.s),sk=dayKey(sd);
+    if(!e.r){if(sk===key)out.push({s:secOf(e.s),e:secOf(e.s)+len/1000});continue}
+    if(key<sk||e.ex.includes(key)||moved.has(e.u+'|'+key))continue;
+    const R={};e.r.split(';').forEach(p=>{const [k,v]=p.split('=');R[k]=v});
+    const iv=+(R.INTERVAL||1),byday=(R.BYDAY||'').split(',').filter(Boolean).map(x=>['SU','MO','TU','WE','TH','FR','SA'].indexOf(x.slice(-2)));
+    if(R.UNTIL){const u=R.UNTIL.slice(0,8);if(key.replace(/-/g,'')>u)continue}
+    const s0=new Date(sd.getFullYear(),sd.getMonth(),sd.getDate()).getTime(),days=Math.round((d0-s0)/864e5);
+    const hit=(n)=>{const dd=new Date(s0+n*864e5);if(R.FREQ==='DAILY')return n%iv===0;
+      if(R.FREQ==='WEEKLY'){const wd=dd.getDay(),days2=byday.length?byday:[sd.getDay()];const mon=x=>{const q=new Date(x);q.setDate(q.getDate()-((q.getDay()+6)%7));return q.setHours(0,0,0,0)};
+        return days2.includes(wd)&&Math.round((mon(dd)-mon(new Date(s0)))/(7*864e5))%iv===0}
+      if(R.FREQ==='MONTHLY')return dd.getDate()===sd.getDate()&&!byday.length;return false};
+    if(!hit(days))continue;
+    if(R.COUNT){if(days>1200)continue;let c=0;for(let n=0;n<=days;n++)if(hit(n))c++;if(c>+R.COUNT)continue}
+    const st=secOf(e.s);out.push({s:st,e:st+len/1000})}
+  return merge(out.map(b=>({s:Math.max(0,b.s),e:Math.min(24*H,b.e)})))}
+/* connectors (inside Claude only): free/busy only, titles dropped on arrival */
+function buildInput(sc){const d=new Date(),a=new Date(d.getFullYear(),d.getMonth(),d.getDate()),b=new Date(a.getTime()+864e5);
+  const props=(sc&&sc.properties)||{},req=(sc&&sc.required)||[],inp={};
+  for(const [k,v] of Object.entries(props)){const n=k.toLowerCase(),ty=v&&v.type,isDate=(v&&v.format==='date')||(/date/.test(n)&&!/time/.test(n)),val=x=>isDate?dayKey(x):x.toISOString();
+    if(/calendar/.test(n)){if(/calendar_?id$/.test(n)&&ty!=='array')inp[k]='primary'}
+    else if(/time_?zone|tz$/.test(n)){try{inp[k]=Intl.DateTimeFormat().resolvedOptions().timeZone}catch(e){}}
+    else if(/max_?results|limit|page_?size|^top$|count/.test(n)&&(ty==='integer'||ty==='number'))inp[k]=100;
+    else if(/(min|start|from|after|begin)/.test(n))inp[k]=val(a);
+    else if(/(max|end|until|before)/.test(n)||/(^|_)to$/.test(n))inp[k]=val(b);
+    else if(/single_?events|expand/.test(n)&&ty==='boolean')inp[k]=true;
+    else if(req.includes(k)&&ty==='string')inp[k]=''}
+  return inp}
+function parseBusy(p){if(typeof p==='string'){try{p=JSON.parse(p)}catch(e){}}
+  const today=dayKey(new Date()),out=[];
+  const tv=(v,o)=>{let s=null,tz=null;if(typeof v==='string')s=v;else if(v&&typeof v==='object'){s=v.dateTime||v.date_time||v.datetime||v.date||null;tz=v.timeZone||v.time_zone}
+    if(!s||s.length<=10)return null;if(/utc/i.test(tz||o.timeZone||'')&&!/(z|[+-]\d\d:?\d\d)$/i.test(s))s+='Z';const d=new Date(s);return isNaN(d)?null:d};
+  const add=(s,e)=>{if(!s||!e||e<=s)return;const k0=dayKey(s),k1=dayKey(e);if(k0>today||k1<today)return;
+    const sm=k0<today?0:s.getHours()*H+s.getMinutes()*M,em=k1>today?24*H:e.getHours()*H+e.getMinutes()*M;if(em>sm)out.push({s:sm,e:em})};
+  const walk=(o,dep)=>{if(!o||dep>8)return;if(Array.isArray(o)){o.forEach(x=>walk(x,dep+1));return}if(typeof o!=='object')return;
+    const sv=o.start??o.startTime??o.start_time??o.startDateTime??o.start_date_time,ev=o.end??o.endTime??o.end_time??o.endDateTime??o.end_date_time;
+    if(sv&&ev){const free=/transparent/i.test(o.transparency||'')||/^free$/i.test(o.showAs||o.show_as||'')||o.isAllDay===true||o.isCancelled===true||/declined/i.test(o.myResponseStatus||o.responseStatus||'');
+      if(!free)add(tv(sv,o),tv(ev,o));return}
+    for(const v of Object.values(o))walk(v,dep+1)};
+  if(typeof p==='string'){const m=p.match(/\d{4}-\d\d-\d\dT\d\d:\d\d(:\d\d)?(\.\d+)?(Z|[+-]\d\d:?\d\d)?/g)||[];for(let i=0;i+1<m.length;i+=2)add(new Date(m[i]),new Date(m[i+1]))}else walk(p,0);
+  return merge(out)}
+async function sync(){const src=REAL.src;if(!SRV[src]||syncing)return;const {server,tool}=SRV[src];
+  if(!mcp){REAL.sync={err:'nomcp'};commit();return}
+  syncing=true;REAL.sync=Object.assign({},REAL.sync,{busy:true});render();
+  const call=async()=>{let desc=null;try{desc=await mcp.describeTool(server,tool)}catch(e){}
+    if(!desc){try{await mcp.callTool(server,tool,{},{cache:false})}catch(e){if(!['tool_error','bad_request'].includes(e.code))throw e}try{desc=await mcp.describeTool(server,tool)}catch(e){}}
+    return mcp.callTool(server,tool,buildInput(desc&&desc.inputSchema),{cache:false})};
+  try{let r;try{r=await call()}catch(e){if(e&&e.retryable){await new Promise(z=>setTimeout(z,Math.min(e.retryAfterMs||2500+Math.random()*1500,8000)));r=await call()}else throw e}
+    const blocks=parseBusy(r.payload!==undefined?r.payload:r);REAL.busy=blocks;REAL.busyDate=dayKey(new Date());REAL.sync={at:Date.now(),n:blocks.length};
+    within(REAL,()=>{replan('Calendar synced: '+blocks.length+' busy block'+(blocks.length===1?'':'s')+' today.')})}
+  catch(e){REAL.sync={err:(e&&e.code)||'upstream_error',at:REAL.sync.at};if(['needs_reauth','server_not_connected','blocked_by_policy','not_in_manifest'].includes(REAL.sync.err)){REAL.busy=[]}}
+  syncing=false;commit()}
+function syncMsg(){const s=REAL.sync||{},sv=(SRV[REAL.src]||{}).server,nm=(SRV[REAL.src]||{}).name;
+  return {nomcp:'Calendar sync works when Ritmo is opened inside Claude. Import a calendar file or add busy times by hand instead.',
+    server_not_connected:'Add the '+sv+' connector in Claude (Settings, then Connectors), then sync again.',
+    needs_reauth:'Your '+nm+' connection has lapsed. Reconnect '+sv+' in Claude settings, then sync again.',
+    selection_required:'You have more than one '+sv+' account in Claude. Choose one when Claude asks, then sync again.',
+    not_in_manifest:'Ritmo needs your OK to read free and busy times. Sync again and allow it.',approval_required:'Ritmo needs your OK to read free and busy times. Sync again and allow it.',
+    blocked_by_policy:'Your organisation blocks this connector. Import a calendar file or add busy times by hand.',server_unavailable:nm+' did not answer. Try again in a minute.'}[s.err]||(s.err?'Could not read your calendar ('+s.err+'). Try again, or add busy times by hand.':'')}
+
+/* ================= planner ================= */
+const dayType=()=>S.demo?'home':(S.type||S.set.week[new Date().getDay()]);
+const minGap=()=>Math.max(5*M,(2*S.set.walk+1)*M);
+const prep=d=>HEAT+DR[d].brew;
+function analyse(){const B=S.busy,st=S.set,gaps=[];let c=st.start;
+  for(const e of B){if(e.e<=st.start)continue;if(e.s>=st.end)break;if(e.s>c)gaps.push([c,e.s,false]);c=Math.max(c,e.e)}
+  if(st.end>c)gaps.push([c,st.end,true]);
+  return gaps.map(([a,b,last],i)=>{let se=b;
+    if(!last)for(const e of B){if(e.e<=b)continue;if(e.s-se>=minGap())break;se=Math.max(se,e.e)}
+    const stretch=last?0:se-b,first=i===0&&!last&&!B.some(e=>e.e<=a&&e.e>st.start);
+    const at=last?a:Math.max(a,b-(st.walk+3)*M);
+    const why=last?'After your last call':first?'Before your first call'+(stretch>=75*M?', then '+dur(stretch)+' of calls':''):stretch>=75*M?'Before '+dur(stretch)+' of back-to-back calls':'Before your '+fmt(b)+' call';
+    return{key:a,gs:a,ge:b,at,last,len:b-a,stretch,first,why,score:stretch/60+(first?45:0)+(last?-30:0)+Math.min((b-a)/60,30)*.2}})}
+function plan(){const st=S.set,home=dayType()==='home';
+  const fixed=S.plan.filter(p=>p.adhoc||!PEND.includes(p.status)),old=S.plan.filter(p=>!p.adhoc&&PEND.includes(p.status));
+  const made=fixed.filter(p=>!['skipped','passed'].includes(p.status));
+  const items=[];
+  for(const c of analyse()){if(fixed.some(f=>!f.adhoc&&f.gs===c.gs&&f.status!=='passed'))continue;
+    const o=old.find(x=>x.at>=c.gs&&x.at<=c.ge)||null,drink=o?o.drink:st.drink,shift=o?o.shift||0:0;
+    const at=Math.min(c.ge,Math.max(c.gs,c.at+shift));
+    if(at-prep(drink)<S.t+STEP&&!(o&&o.status!=='planned'&&at>S.t))continue;
+    let block=null;if(!home)block=TYPES[dayType()]+': your machine is at home';else if(c.len<minGap())block='Too short to walk over and back';else if(at>st.cutoff)block='After your last-coffee time';
+    const uo=o&&o.touched?(o.userOn!=null?o.userOn:o.on):null;
+    items.push(Object.assign(o||{},c,{at,drink,shift,status:o?o.status:'planned',touched:o?o.touched:false,userOn:uo,hu:o?o.hu:false,block,note:null,on:false}))}
+  let budget=st.max-made.filter(p=>!p.adhoc).length;const chosen=made.map(p=>p.ra||p.at);
+  for(const it of items)if(it.userOn===true&&!it.block){it.on=true;chosen.push(it.at);budget--}
+  for(const it of items.filter(i=>i.userOn===null&&!i.block).sort((a,b)=>b.score-a.score)){
+    const near=chosen.find(x=>Math.abs(x-it.at)<st.spacing*M);
+    if(near!==undefined)it.note='Within '+st.spacing+' min of your '+fmt(near)+' coffee';else if(budget<=0)it.note='Daily limit of '+st.max+' reached';else{it.on=true;chosen.push(it.at);budget--}}
+  for(const it of items){if(it.userOn===false)it.note='Turned off by you';if(it.block)it.on=false;if(!it.on&&it.status!=='planned')it.status='planned'}
+  S.plan=fixed.concat(items).sort((a,b)=>a.at-b.at)}
+function replan(why){const before=S.plan.filter(p=>!p.adhoc&&p.on&&PEND.includes(p.status)).map(p=>p.at);
+  S.busy=busyNow();plan();const after=S.plan.filter(p=>!p.adhoc&&p.on&&PEND.includes(p.status)).map(p=>p.at);
+  if(why)log(why);
+  if(before.length&&before.join()!==after.join())log('Plan updated: '+(after.length?after.map(fmt).join(', '):'no coffees')+(before.length?' (was '+before.map(fmt).join(', ')+')':'')+'.')}
+function within(st,fn){const prev=S;S=st;try{fn()}finally{S=prev}}
+
+/* ================= engine ================= */
+const temp=(p,t)=>21+54*Math.exp(-(t-p.ra)/(DR[p.drink].tau*60));
+function probs(d){const m=S.m,p=[];if(!m.pod||!m.cup)p.push('load a pod and cup');if(m.water<DR[d||S.set.drink].water+3)p.push('refill the water tank');if(m.bin>=m.binMax)p.push('empty the capsule bin');return p}
+const hasCal=()=>S.demo||(S.src==='manual'||S.src==='ics'&&S.ics||!!(SRV[S.src]&&S.sync&&S.sync.at));
+const active=()=>hasCal()&&S.set.auto&&!S.paused&&dayType()==='home';
+const inEvent=t=>S.busy.find(e=>e.s<=t&&t<e.e);
+const isFree=t=>!S.over&&!inEvent(t);
+function log(msg){S.log.unshift({t:S.t,msg});if(S.log.length>120)S.log.length=120}
+function notify(msg,acts){log(msg);const b=$('ban');b.innerHTML='<b>Ritmo · '+fmt(S.t)+'</b>'+esc(msg)+(acts?'<div class="row">'+acts.map((a,i)=>'<button data-ban="'+i+'">'+a[0]+'</button>').join('')+'</div>':'');
+  b._acts=acts||[];b.classList.add('show');clearTimeout(banT);banT=setTimeout(()=>b.classList.remove('show'),acts?15000:5500);
+  try{navigator.vibrate&&navigator.vibrate(acts?[80,60,80]:120)}catch(e){}
+  if(!S.demo&&S.set.notif&&document.hidden)try{if(Notification.permission==='granted'){if(navigator.serviceWorker&&navigator.serviceWorker.controller)navigator.serviceWorker.ready.then(r=>r.showNotification('Ritmo',{body:msg,icon:'icon-192.png',tag:'ritmo'}));else new Notification('Ritmo',{body:msg})}}catch(e){}}
+function brew(p,t){const d=DR[p.drink],m=S.m;p.status='heating';p.bs=t;m.pod=false;m.cup=false;m.water=Math.max(0,m.water-d.water);m.bin++;m.descale--;m.state='heating';
+  log('Heating up for your '+d.n.toLowerCase()+(p.adhoc?' (one-tap start)':'')+'. Ready at '+fmt(t+prep(p.drink))+'.')}
+function collect(p,t,auto){p.status='collected';p.ca=t;S.k.saved+=3;S.m.state='standby';
+  log((auto?'Picked up while hot':'Collected')+' at '+Math.round(temp(p,t))+'°C.');
+  if(S.demo&&!S.forget){S.m.pod=true;S.m.cup=true;log('Next pod and cup loaded while you were there.')}else if(S.demo){S.forget=false;log('You walked off without loading the next pod.')}
+  else notify('Enjoy. Load the next pod while you are there, and Ritmo will brew it later.');
+  S.needRe=true}
+function hold(p,t,why){p.status='held';p.wasHeld=true;S.m.state='held';S.k.held++;notify('Holding your coffee. '+why+'. It brews the moment you are free.')}
+function endCall(t,auto){if(!S.over)return;log(auto?'Your next meeting started, so the overrun ended.':'Your call ended at '+fmt(t)+'.');S.over=null;
+  for(const p of S.plan)if(p.status==='held'&&t<p.ge-M&&!probs(p.drink).length){brew(p,t);notify('You are free. Ready at '+fmt(t+prep(p.drink))+'.')}}
+function delay(p){if(p.at+5*M>p.ge){notify('Your next call starts at '+fmt(p.ge)+', so this coffee cannot move later.');return}p.shift=(p.shift||0)+5*M;p.touched=true;p.userOn=true;p.on=true;p.hu=false;replan();log('Moved 5 min later.')}
+function step(t){
+  if(S.over&&S.busy.some(e=>e.s>S.over.from&&t>=e.s&&t-STEP<e.s))endCall(t,true);
+  for(const p of S.plan){const d=DR[p.drink];
+    if(p.status==='heating'&&t>=p.bs+HEAT){p.status='brewing';S.m.state='brewing'}
+    if(p.status==='brewing'&&t>=p.bs+prep(p.drink)){p.status='ready';p.ra=p.bs+prep(p.drink);S.m.state='ready';if(p.wasHeld||p.adhoc||p.ra<=p.at+30)S.k.onTime++;
+      notify('Your '+d.n.toLowerCase()+' is ready'+(p.adhoc?'.':'. '+p.why+'.'))}
+    if(p.status==='ready'){if(S.demo&&isFree(t)&&t-p.ra>=90)collect(p,t,true);else if(temp(p,t)<45){p.status='cold';S.m.state='standby';S.k.cold++;log('Your '+d.n.toLowerCase()+' cooled below 45°C on the drip tray.')}}
+    if(p.adhoc||!p.on)continue;
+    const pend=PEND.includes(p.status),bs=p.at-prep(p.drink);
+    if(pend&&t>=bs&&!active()){p.status='passed';continue}
+    if(!active())continue;
+    if(pend&&t>=p.at-30*M&&t<bs){const pr=probs(p.drink);
+      if(pr.length&&p.status!=='alert'){p.status='alert';notify('Before your '+fmt(p.at)+' '+d.n.toLowerCase()+': '+pr.join(', ')+'.')}
+      else if(!pr.length&&p.status!=='checked'){if(p.status==='alert')notify('All set for '+fmt(p.at)+'.');else log('Pre-use check for '+fmt(p.at)+': pod, cup, water and bin all good.');p.status='checked'}}
+    if(S.set.heads&&p.status==='checked'&&!p.hu&&t>=bs-3*M&&t<bs){p.hu=true;notify(d.n+' starts heating at '+fmt(bs)+', ready '+fmt(p.at)+'.',[['Hold',()=>{hold(p,S.t,'You tapped Hold');commit()}],['+5 min',()=>{delay(p);commit()}],['Skip',()=>{skip(p);commit()}]])}
+    if(PEND.includes(p.status)&&t>=bs){if(S.over)hold(p,t,'Your call is running over');else{const pr=probs(p.drink);if(pr.length){p.status='skipped';notify('Could not brew the '+fmt(p.at)+' coffee: '+pr[0]+'. Nothing was wasted.')}else brew(p,t)}}
+    if(p.status==='held'&&t>=p.ge-M){p.status='skipped';S.m.state='standby';S.m.pod=true;S.m.cup=true;notify('The gap closed before you were free, so Ritmo did not brew. The pod is still loaded.')}}
+  if(S.needRe){S.needRe=false;replan()}}
+function skip(p){if(p.status==='held'){S.m.state='standby';S.m.pod=true;S.m.cup=true}if(PEND.includes(p.status)){p.on=false;p.touched=true;p.userOn=false}p.status=p.status==='held'?'skipped':p.status;
+  log('You skipped the '+fmt(p.at)+' coffee.');if(PEND.includes(p.status))replan()}
+function advance(to){to=Math.min(to,S.demo?S.set.end+H:24*H-1);while(S.t+STEP<=to){S.t+=STEP;step(S.t)}}
+function commit(){if(S.needRe){S.needRe=false;replan()}save();render()}
+function rollDay(){const k=dayKey(new Date());if(REAL.date!==k){const keep={onb:REAL.onb,src:REAL.src,set:REAL.set,m:REAL.m,ics:REAL.ics,sync:REAL.sync,tab:REAL.tab};
+  REAL=Object.assign(fresh(),keep,dayState(),{t:nowSec()});REAL.m.state='standby';if(!S.demo)S=REAL;within(REAL,()=>replan());if(SRV[REAL.src])sync()}}
+let lastRender=0;
+function realTick(){if(S.demo)return;rollDay();const n=nowSec();
+  if(n<REAL.t-60){REAL.t=n;commit();return}
+  if(n>=REAL.t+STEP){advance(n);save();render(S.tab==='routine')}else if(Date.now()-lastRender>30000)render(S.tab==='routine')}
+
+/* ================= illustrations ================= */
+function ring(frac,color,dash){const r=62,c=2*Math.PI*r,f=Math.max(0,Math.min(1,frac));
+  return '<circle cx="70" cy="70" r="'+r+'" fill="none" stroke="#ffffff16" stroke-width="5"/><circle cx="70" cy="70" r="'+r+'" fill="none" stroke="'+color+'" stroke-width="5" stroke-linecap="round" stroke-dasharray="'+(dash?'4 9':(c*f).toFixed(1)+' '+c.toFixed(1))+'" transform="rotate(-90 70 70)" style="transition:stroke-dasharray .6s"/>'}
+function cup(o){/* o: {fill 0..1, steam 0..1, pour, frac, color, dash, glow} */
+  const lvl=o.fill||0,ry=12,cy=68,surf=lvl>0?'<ellipse cx="66" cy="'+(cy+2)+'" rx="'+(28-4*(1-lvl))+'" ry="'+(ry-3)+'" fill="url(#crema)"/>':'';
+  const steam=o.steam>0?'<g class="steam" stroke="#f6ede3" stroke-width="3" fill="none" stroke-linecap="round" opacity="'+(.35+.55*o.steam).toFixed(2)+'"><path d="M56 50c-6-8 6-10 0-18"/><path d="M68 48c-6-8 6-10 0-18"/><path d="M80 50c-6-8 6-10 0-18"/></g>':'';
+  const pour=o.pour?'<path class="pour" d="M66 14v54" stroke="#7a4527" stroke-width="3.5" stroke-dasharray="7 5" stroke-linecap="round"/>':'';
+  return '<svg viewBox="0 0 140 140" aria-hidden="true"><defs><radialGradient id="crema" cx="45%" cy="40%"><stop offset="0" stop-color="#e2b47c"/><stop offset=".6" stop-color="#b7773f"/><stop offset="1" stop-color="#6b3a1f"/></radialGradient>'+
+   '<linearGradient id="porc" x1="0" x2="1"><stop offset="0" stop-color="#fffaf4"/><stop offset=".7" stop-color="#efe3d6"/><stop offset="1" stop-color="#d9c8b8"/></linearGradient></defs>'+
+   ring(o.frac==null?0:o.frac,o.color||'#d9a66a',o.dash)+(o.glow?'<circle class="glow" cx="70" cy="70" r="54" fill="'+o.glow+'" opacity=".18"/>':'')+
+   '<ellipse cx="68" cy="104" rx="42" ry="9" fill="#00000040"/><ellipse cx="68" cy="100" rx="42" ry="9" fill="url(#porc)"/>'+
+   '<path d="M94 74c14 0 14 18 0 18" stroke="url(#porc)" stroke-width="6" fill="none"/>'+
+   '<path d="M36 68h60l-5 22c-3 9-12 12-25 12s-22-3-25-12z" fill="url(#porc)"/><ellipse cx="66" cy="'+cy+'" rx="30" ry="'+ry+'" fill="#efe3d6"/><ellipse cx="66" cy="'+(cy+1)+'" rx="27" ry="'+(ry-2.5)+'" fill="#3a2015"/>'+surf+pour+steam+'</svg>'}
+function machineSvg(){const st=S.m.state,live=['heating','brewing','ready','held'].includes(st),pr=probs().length;
+  const light=st==='ready'?'#3cbf93':st==='heating'||st==='brewing'?'#e3a04a':st==='held'?'#e3a04a':pr?'#e04a2f':'#9b8778';
+  return '<svg viewBox="0 0 200 200" role="img" aria-label="Machine: '+st+'"><defs><linearGradient id="mb" x1="0" x2="1"><stop offset="0" stop-color="#3b2419"/><stop offset=".5" stop-color="#5a3826"/><stop offset="1" stop-color="#2a1810"/></linearGradient></defs>'+
+   '<ellipse cx="100" cy="186" rx="70" ry="8" fill="#00000055"/><rect x="40" y="22" width="120" height="160" rx="26" fill="url(#mb)"/><rect x="40" y="22" width="120" height="34" rx="17" fill="#ffffff12"/>'+
+   '<circle cx="100" cy="39" r="6" fill="'+light+'"'+(st==='heating'?' class="glow"':'')+'/><rect x="72" y="64" width="56" height="18" rx="7" fill="#1c100b"/>'+
+   '<rect x="52" y="92" width="96" height="74" rx="14" fill="#1c100b"/><rect x="58" y="158" width="84" height="6" rx="3" fill="#ffffff22"/>'+
+   (S.m.cup||live?'<g transform="translate(62 96) scale(.55)">'+cup({fill:st==='ready'?.6:st==='brewing'?.4:0,steam:st==='ready'?1:0,pour:st==='brewing'}).replace(/<svg[^>]*>|<\/svg>/g,'').replace(/<circle[^>]*r="62"[^>]*\/>/g,'')+'</g>':'')+'</svg>'}
+
+/* ================= views ================= */
+function heroItem(){return S.plan.find(p=>LIVE.includes(p.status))||S.plan.find(p=>p.on&&!p.adhoc&&PEND.includes(p.status))}
+function fixBtns(p){const m=S.m,b=[];if(!m.pod||!m.cup)b.push('<button class="btn" data-a="load">Pod and cup loaded</button>');if(m.water<DR[p?p.drink:S.set.drink].water+3)b.push('<button class="btn" data-a="water">Tank refilled</button>');if(m.bin>=m.binMax)b.push('<button class="btn" data-a="bin">Bin emptied</button>');return b.join('')}
+function heroHtml(c,k,h,p,acts,why){return '<section class="hero"><div class="grid"><div class="cup">'+cup(c)+'</div><div><div class="k">'+k+'</div><h3>'+h+'</h3><p>'+p+'</p></div></div>'+(acts?'<div class="acts">'+acts+'</div>':'')+(why?'<div class="why">'+why+'</div>':'')+'</section>'}
+function hero(){const t=S.t;
+  if(!hasCal())return heroHtml({fill:0},'Get started','Your day',"Ritmo plans coffee into the gaps between your calls.",'<button class="btn" data-a="pick">Set up your calendar</button>');
+  const p=heroItem();
+  if(p&&p.status==='ready'){const T=temp(p,t),lab=T>=60?'Hot':T>=52?'Warm':'Cooling';
+    return heroHtml({fill:DR[p.drink].fill,steam:Math.max(0,(T-45)/30),frac:(T-45)/30,color:'#5fd3a8'},'<b>'+DR[p.drink].n+'</b> · ready since '+fmt(p.ra),lab+'<small>'+Math.round(T)+'°C</small>','Waiting on the drip tray. The ring is how much heat is left.','<button class="btn" data-a="collect" data-id="'+p.key+'">Got it</button>')}
+  if(p&&(p.status==='heating'||p.status==='brewing')){const tot=prep(p.drink),f=(t-p.bs)/tot;
+    return heroHtml({fill:p.status==='brewing'?DR[p.drink].fill*Math.min(1,(t-p.bs-HEAT)/DR[p.drink].brew):0,pour:p.status==='brewing',frac:f,color:'#d9a66a'},'<b>'+DR[p.drink].n+'</b> · '+(p.status==='heating'?'heating up':'pouring'),fmt(p.bs+tot)+'<small>ready</small>','Hot the moment your gap opens.')}
+  if(p&&p.status==='held')return heroHtml({fill:0,frac:1,color:'#e3a04a',dash:true},'<b>Held</b> · nothing goes cold','On hold','Ritmo brews the moment your call ends. This gap closes at '+fmt(p.ge)+'.','<button class="btn" data-a="release" data-id="'+p.key+'">I am free, brew now</button><button class="btn2" data-a="skip" data-id="'+p.key+'">Skip</button>');
+  if(dayType()!=='home')return heroHtml({fill:0},TYPES[dayType()],'Resting','Your machine is at home, so Ritmo plans nothing today. Switch the day type if plans change.','<button class="btn" data-a="daytype">Make it a home day</button>');
+  if(!active())return heroHtml({fill:0},S.paused?'Paused for today':'Manual mode','Your call','Nothing brews on its own. One-tap brew is on the Machine tab.','<button class="btn" data-a="'+(S.paused?'pause':'auto')+'">'+(S.paused?'Resume automation':'Turn automation on')+'</button>');
+  if(!p){const n=S.plan.filter(x=>!x.adhoc&&x.status==='collected').length;return heroHtml({fill:0},'That is it for today','All done',n?'You had '+n+' coffee'+(n>1?'s':'')+' from Ritmo today. Tomorrow plans itself.':'No more gaps that fit before '+fmt(S.set.cutoff)+'.')}
+  const d=DR[p.drink],bs=p.at-prep(p.drink),toGo=p.at-t,soon=t>=bs-12*M;
+  if(p.status==='alert')return heroHtml({fill:0,frac:1,color:'#e04a2f'},'<b>Needs you</b> before '+fmt(bs),fmt(p.at)+'<small>'+d.n.toLowerCase()+'</small>','Please '+probs(p.drink).join(', ')+'. Do it now, not when you need the coffee.',fixBtns(p),'<span class="tag">'+esc(p.why)+'</span>');
+  const m=S.m,tags='<span class="tag">'+esc(p.why)+'</span><span class="tag '+(m.pod&&m.cup?'good':'')+'">'+(m.pod&&m.cup?'✓':'·')+' Pod and cup</span><span class="tag '+(m.water>=d.water+3?'good':'')+'">'+(m.water>=d.water+3?'✓':'·')+' Water</span><span class="tag '+(m.bin<m.binMax?'good':'')+'">'+(m.bin<m.binMax?'✓':'·')+' Bin</span>';
+  return heroHtml({fill:0,frac:1-toGo/(60*M),color:'#d9a66a'},'<b>Next '+d.n.toLowerCase()+'</b> · in '+dur(Math.max(60,toGo)),fmt(p.at)+'<small>ready</small>',p.status==='checked'?'Machine checked. Heating starts at '+fmt(bs)+'.':'Ritmo checks the machine at '+fmt(Math.max(p.at-30*M,S.t))+'.',
+    soon?'<button class="btn2" data-a="hold" data-id="'+p.key+'">Running late? Hold</button><button class="btn2" data-a="later" data-id="'+p.key+'">+5 min</button><button class="btn2" data-a="skip" data-id="'+p.key+'">Skip</button>':'',tags)}
+const LBL={planned:'Planned',checked:'Checked',alert:'Needs you',heating:'Heating',brewing:'Pouring',ready:'Ready',held:'Held',collected:'Enjoyed',cold:'Went cold',skipped:'Skipped',passed:'Not brewed'};
+function coffeeRow(p){const t=S.t,past=DONE.includes(p.status),d=DR[p.drink],open=S.open===String(p.key)&&!p.adhoc&&PEND.includes(p.status);
+  const sub=p.adhoc?'One-tap brew':p.on||!PEND.includes(p.status)?p.why:(p.block||p.note||'Not planned');
+  const label=p.on||p.adhoc||!PEND.includes(p.status)?d.n:'Free gap · '+dur(p.len);
+  let h='<li class="c'+(p.on||p.adhoc||!PEND.includes(p.status)?'':' offc')+(past?' past':'')+'"><time>'+fmt(p.at)+'</time><span class="pin"></span><button class="cof'+(p.on&&!past||LIVE.includes(p.status)?' on':'')+'" data-a="open" data-id="'+p.key+'" aria-expanded="'+open+'"><b>'+label+'</b>'+(p.on||p.adhoc||!PEND.includes(p.status)?'<span class="st">'+LBL[p.status]+'</span>':'')+'<small>'+esc(sub)+'</small></button></li>';
+  if(open)h+='<li><span></span><span></span><div class="edit"><div class="row" style="justify-content:space-between;margin-bottom:10px"><b style="font-size:15px">'+(p.on?'Coffee at '+fmt(p.at):'Add a coffee here?')+'</b><button class="sw" aria-label="Coffee in this gap" aria-pressed="'+p.on+'" data-a="tog" data-id="'+p.key+'" '+(p.block?'disabled':'')+'></button></div>'+
+    (p.block?'<p style="margin:0;font-size:14px;color:var(--mut)">'+esc(p.block)+'.</p>':'<div class="seg">'+Object.keys(DR).map(k=>'<button data-a="drink" data-id="'+p.key+'|'+k+'" aria-pressed="'+(p.drink===k)+'">'+DR[k].n+'</button>').join('')+'</div>'+
+    '<div class="row" style="margin-top:10px"><button class="b2" data-a="shift" data-id="'+p.key+'|-300" '+(p.at-5*M<p.gs?'disabled':'')+'>5 min earlier</button><button class="b2" data-a="shift" data-id="'+p.key+'|300" '+(p.at+5*M>p.ge?'disabled':'')+'>5 min later</button></div>')+'</div></li>';
+  return h}
+function today(){const t=S.t,rows=[];
+  for(const e of S.busy){if(e.e<S.set.start-H)continue;const over=S.over&&e.e===S.over.from;rows.push({at:e.s,h:'<li class="'+(e.e<=t&&!over?'past':e.s<=t?'now':'')+'"><time>'+fmt(e.s)+'</time><span class="pin"></span><div class="busy">Busy · '+dur(e.e-e.s)+(over?' · running over':'')+'</div></li>'})}
+  for(const p of S.plan){if(!p.adhoc&&!p.on&&PEND.includes(p.status)&&p.at>S.set.cutoff)continue;rows.push({at:p.at-.5,h:coffeeRow(p)})}
+  rows.sort((a,b)=>a.at-b.at);
+  const ty=dayType(),dl=S.demo?'Sample day':new Date().toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long'});
+  const chip=S.demo?'<span class="chip demo">Demo</span>':'<button class="chip'+(active()?'':' off')+'" data-a="daytype" aria-label="Day type: '+TYPES[ty]+'. Tap to change."><span class="dot"></span>'+TYPES[ty]+'</button>';
+  const k=S.k;
+  return '<div class="hd"><div><h2>Today</h2><small>'+dl+'</small></div>'+chip+'</div>'+hero()+
+   (hasCal()?'<h3 class="sec">Your day<span>Tap a coffee or gap to change it</span></h3>'+(rows.length?'<ul class="tl">'+rows.map(r=>r.h).join('')+'</ul>':'<p style="color:var(--mut)">No busy times and no gaps left today.</p>')+
+   '<div class="stats"><div><b>'+k.onTime+'</b><span>Ready on time</span></div><div><b>'+k.cold+'</b><span>Gone cold</span></div><div><b>'+k.held+'</b><span>Held for you</span></div><div><b>'+k.saved+'</b><span>Minutes saved</span></div></div>'+
+   '<button class="ghost" data-a="pause">'+(S.paused?'Resume automation':'Pause automation for today')+'</button>':'')}
+function machine(){const m=S.m,busyM=['heating','brewing','ready'].includes(m.state),d=S.brewD||S.set.drink,pr=probs(d),ok=!pr.length&&!busyM;
+  const lv=(n,v,txt,lo)=>'<div class="lvl"><span>'+n+'</span><div class="bar"><i class="'+(lo?'lo':'')+'" style="width:'+Math.max(0,Math.min(100,v))+'%"></i></div><span>'+txt+'</span></div>';
+  const stTxt={standby:'Standing by',heating:'Heating up',brewing:'Pouring',ready:'Coffee waiting',held:'Holding for you'}[m.state];
+  return '<div class="hd"><div><h2>Machine</h2><small>A Modo Mio Ritmo</small></div><span class="chip"><span class="dot"></span>Online</span></div>'+
+   '<section class="mstage"><div class="top"><b>'+stTxt+'</b><span style="font-size:13px;color:#d8c2b0">'+(m.pod&&m.cup?'Pod and cup in':'Empty')+'</span></div>'+machineSvg()+
+   '<div class="seg" style="justify-content:center;margin:6px 0 12px">'+Object.keys(DR).map(k=>'<button data-a="brewd" data-id="'+k+'" aria-pressed="'+(d===k)+'">'+DR[k].n+'</button>').join('')+'</div>'+
+   '<button class="big" data-a="brewnow" '+(ok?'':'disabled')+'>Brew '+DR[d].n.toLowerCase()+' now · '+prep(d)+' s</button>'+(ok||busyM?'':'<p style="font-size:14px;color:#ffc2b5;margin:10px 0 0;text-align:center">To brew: '+pr.join(', ')+'.</p>')+'</section>'+
+   '<div class="card"><h3>Load now, brew later</h3><p>'+(m.pod&&m.cup?'Pod and cup are in. Ritmo brews when your gap opens.':'Load a pod and cup whenever you pass the machine, then tap Loaded below.')+'</p></div>'+
+   '<div class="card">'+lv('Water',m.water,m.water+'%',m.water<15)+lv('Capsule bin',m.bin/m.binMax*100,m.bin+' of '+m.binMax,m.bin>=m.binMax)+lv('Descaling',m.descale/40*100,m.descale>0?m.descale+' brews':'Due now',m.descale<=5)+
+   '<div class="row" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px"><button class="b2" data-a="load">Loaded pod</button><button class="b2" data-a="water">Refilled</button><button class="b2" data-a="bin">Emptied bin</button><button class="b2" data-a="descale">Descaled</button></div></div>'+
+   (m.descale<=5?'<div class="card"><h3>Descale soon</h3><p>'+(m.descale>0?m.descale+' brews left. ':'')+'Run it on an evening. Ritmo will not plan coffees while it runs.</p></div>':'')+
+   '<p class="priv">Until the connected A Modo Mio ships, these buttons stand in for the machine\'s sensors.</p>'}
+function busyEditor(){const list=REAL.manual;
+  return '<ul class="busyed">'+(list.length?merge(list).map((b,i)=>'<li><span>'+fmt(b.s)+' – '+fmt(b.e)+'</span><button data-a="delb" data-id="'+b.s+'" aria-label="Remove '+fmt(b.s)+'">Remove</button></li>').join(''):'<li><span style="opacity:.7">No busy times yet</span></li>')+'</ul>'+
+   '<form class="addb" id="addb"><label>From<input type="time" id="bs" value="09:00" required></label><label>To<input type="time" id="be" value="09:30" required></label><button class="b1" type="submit">Add</button></form>'}
+function icsBox(){const i=REAL.ics;return '<label class="file"><input type="file" id="icsf" accept=".ics,text/calendar">'+(i?'Import a newer file':'Choose an .ics file')+'</label>'+
+  (i?'<p style="margin-top:8px;font-size:13px">'+i.n+' events from '+esc(i.name)+', imported '+new Date(i.at).toLocaleDateString('en-GB',{day:'numeric',month:'short'})+'. Today: '+busyNow().length+' busy blocks.</p>':'<p style="margin-top:8px;font-size:13px">Google Calendar: Settings, Import and export, Export. Outlook: Calendar, Share, Publish, then download the .ics link.</p>')}
+function calCard(){const s=REAL.sync||{},src=REAL.src;
+  if(S.demo)return '<div class="card"><h3>Calendar</h3><p>Demo mode uses a sample day of seven calls.</p></div>';
+  const head=t=>'<div class="card"><div class="set" style="padding-top:0"><div><b>'+t+'</b><span>Free and busy only, never titles</span></div><button class="b2" data-a="pick">Change</button></div>';
+  if(src==='manual')return head('Typed-in busy times')+'<div style="margin-top:10px">'+busyEditor()+'</div></div>';
+  if(src==='ics')return head('Calendar file')+'<div style="margin-top:10px">'+icsBox()+'</div></div>';
+  if(SRV[src])return head(SRV[src].name)+'<p style="margin-top:8px">'+(s.busy?'Reading free and busy times…':s.at?'Synced '+new Date(s.at).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})+' · '+(s.n||0)+' busy blocks today':'Not synced yet')+'</p>'+(s.err?'<div class="err">'+esc(syncMsg())+'</div>':'')+'<button class="b1" style="margin-top:10px" data-a="sync">Sync now</button></div>';
+  return '<div class="card"><h3>Calendar</h3><p>Not set up.</p><button class="b1" style="margin-top:10px" data-a="pick">Set up</button></div>'}
+const stepper=(a,v,lab)=>'<div class="step"><button data-a="'+a+'-" aria-label="Less '+lab+'">−</button><output>'+v+'</output><button data-a="'+a+'+" aria-label="More '+lab+'">+</button></div>';
+const swb=(a,on,lab)=>'<button class="sw" aria-label="'+lab+'" aria-pressed="'+on+'" data-a="'+a+'"></button>';
+function weekHtml(){return '<div class="week">'+[1,2,3,4,5,6,0].map(i=>'<button class="'+(S.set.week[i]==='home'?'home':'')+'" data-a="week" data-id="'+i+'" aria-label="'+WD[i]+': '+TYPES[S.set.week[i]]+'">'+WD[i]+'<small>'+{home:'Home',office:'Office',off:'Off'}[S.set.week[i]]+'</small></button>').join('')+'</div>'}
+function rhythm(){return '<div class="set col"><div><b>Your week</b><span>Ritmo only plans on home days. Tap to switch.</span></div>'+weekHtml()+'</div>'+
+  '<div class="set"><div><b>Coffees a day</b><span>Most valuable gaps first</span></div>'+stepper('max',S.set.max,'coffees')+'</div>'+
+  '<div class="set col"><div><b>Usual drink</b><span>You can change any single coffee</span></div><div class="seg" style="margin-top:8px">'+Object.keys(DR).map(k=>'<button data-a="defd" data-id="'+k+'" aria-pressed="'+(S.set.drink===k)+'">'+DR[k].n+'</button>').join('')+'</div></div>'+
+  '<div class="set"><div><b>Work starts</b><span>First gap opens here</span></div>'+stepper('start',fmt(S.set.start),'start')+'</div>'+
+  '<div class="set"><div><b>Last coffee by</b><span>For a good night\'s sleep</span></div>'+stepper('cut',fmt(S.set.cutoff),'cutoff')+'</div>'+
+  '<div class="set"><div><b>Walk to the machine</b><span>Gaps shorter than a round trip are skipped</span></div>'+stepper('walk',S.set.walk+' min','walk')+'</div>'+
+  '<div class="set"><div><b>Space between coffees</b><span>Keeps the day even</span></div>'+stepper('space',S.set.spacing+' min','spacing')+'</div>'}
+function routine(){const canNotif=!inClaude&&'Notification' in window&&window.self===window.top;
+  return '<div class="hd"><div><h2>Routine</h2><small>How Ritmo plans your day</small></div></div>'+calCard()+
+   '<div class="card">'+rhythm()+'</div>'+
+   '<div class="card"><div class="set"><div><b>Auto-brew planned coffees</b><span>Off is full manual mode</span></div>'+swb('auto',S.set.auto,'Auto-brew')+'</div>'+
+   '<div class="set"><div><b>Heads-up before heating</b><span>3 min notice with Hold, +5 and Skip</span></div>'+swb('heads',S.set.heads,'Heads-up')+'</div>'+
+   (canNotif?'<div class="set"><div><b>Phone notifications</b><span>Alerts while Ritmo is in the background</span></div>'+swb('notif',S.set.notif,'Notifications')+'</div>':'')+
+   '<div class="set"><div><b>Pause for today</b><span>Back to normal tomorrow</span></div>'+swb('pause',S.paused,'Pause today')+'</div></div>'+
+   '<div class="card"><h3>Put Ritmo on your home screen</h3><p>'+(inClaude?'For the full app with notifications, open yangatheart.github.io/ritmo/app in Safari or Chrome, then Share, Add to Home Screen.':'In Safari tap Share, then Add to Home Screen. In Chrome tap the menu, then Install app. Ritmo then opens full screen and works offline.')+'</p></div>'+
+   '<div class="card"><h3>History</h3><ul class="log">'+(S.log.length?S.log.slice(0,30).map(l=>'<li><time>'+fmt(l.t)+'</time><span>'+esc(l.msg)+'</span></li>').join(''):'<li><span style="color:var(--mut)">Every automated step shows up here.</span></li>')+'</ul>'+
+   '<button class="ghost" style="margin-top:10px;background:var(--bg)" data-a="copy">Copy today\'s stats</button></div>'+
+   (S.demo?'':'<div class="card"><h3>Start over</h3><p>Clears your calendar, settings, machine state and history on this device.</p>'+(S.confirmReset?'<div class="row" style="display:flex;gap:8px;margin-top:10px"><button class="b1" style="background:var(--acc);color:#fff" data-a="resetyes">Yes, reset Ritmo</button><button class="b2" data-a="resetno">Cancel</button></div>':'<button class="ghost" style="margin-top:10px;background:var(--bg);color:var(--acc)" data-a="reset">Reset the app</button>')+'</div>')+
+   '<p class="priv">Nothing brews or is bought without your OK. Everything stays on this device.</p>'}
+function onb(){if(S.demo||REAL.onb>=3)return '';const st=REAL.onb,dots='<div class="dots">'+[0,1,2].map(i=>'<i class="'+(i<=st?'on':'')+'"></i>').join('')+'</div>';
+  const pick=(id,t,s,ic)=>'<button class="pick" data-a="src" data-id="'+id+'"><svg viewBox="0 0 24 24" aria-hidden="true">'+ic+'</svg><span><b>'+t+'</b><small>'+s+'</small></span></button>';
+  if(st===0)return '<div class="onb"><div>'+dots+'<div class="heroimg">'+cup({fill:.55,steam:1,frac:.72,color:'#d9a66a'})+'</div><h2>Coffee ready when the gap opens</h2><p>Ritmo reads your calendar, checks the machine ahead of time and brews so your coffee is hot between calls. Never late, never cold.</p><div class="foot"><button class="big" data-a="onbnext">Get started</button></div></div></div>';
+  if(st===1){const s=REAL.sync||{},src=REAL.src;let extra='';
+    if(src==='manual')extra='<div class="card" style="margin-top:6px"><h3>Today\'s busy times</h3>'+busyEditor()+'</div>';
+    else if(src==='ics')extra='<div class="card" style="margin-top:6px"><h3>Calendar file</h3>'+icsBox()+'</div>';
+    else if(SRV[src])extra='<div class="card" style="margin-top:6px"><h3>'+SRV[src].name+'</h3><p>'+(s.busy?'Reading free and busy times…':s.at?'Connected. '+(s.n||0)+' busy blocks today.':'Waiting…')+'</p>'+(s.err?'<div class="err">'+esc(syncMsg())+'</div><button class="b1" style="background:var(--foam);color:var(--roast)" data-a="sync">Try again</button>':'')+'</div>';
+    const cal='<rect x="4" y="5" width="16" height="15" rx="3" fill="none" stroke="currentColor" stroke-width="2"/><path d="M4 10h16M9 3v4M15 3v4" stroke="currentColor" stroke-width="2"/>';
+    return '<div class="onb"><div>'+dots+'<h2>Where does your day live?</h2><p>Ritmo only needs when you are busy, never what the meetings are.</p>'+
+      (inClaude?pick('google','Google Calendar','Syncs through your Claude connector',cal)+pick('outlook','Outlook','Microsoft 365 connector in Claude',cal):'')+
+      pick('ics','Import a calendar file','.ics export from Google or Outlook, kept on this phone','<path d="M12 4v11M7 10l5 5 5-5M5 20h14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>')+
+      pick('manual','Type in today\'s busy times','Quickest way to try Ritmo','<path d="M4 20h4L19 9l-4-4L4 16z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>')+extra+
+      '<div class="foot"><button class="big" data-a="onbnext" '+(hasCalR()?'':'disabled')+'>Continue</button><button class="ghost" data-a="onbback">Back</button></div></div></div>'}
+  return '<div class="onb"><div>'+dots+'<h2>Your rhythm</h2><p>Ritmo picks the gaps that matter most: before long runs of calls, not just the first free minute.</p><div class="card">'+within2(REAL,rhythm)+'</div>'+
+    '<p class="priv">You get a heads-up 3 minutes before heating, with Hold, +5 min and Skip.</p><div class="foot"><button class="big" data-a="done">Plan my day</button><button class="ghost" data-a="onbback">Back</button></div></div></div>'}
+const hasCalR=()=>REAL.src==='manual'?REAL.manual.length>0:REAL.src==='ics'?!!REAL.ics:!!(SRV[REAL.src]&&REAL.sync&&REAL.sync.at);
+function within2(st,fn){let r;within(st,()=>{r=fn()});return r}
+
+/* ================= demo ================= */
+const STORY=[[8*H+50*M+30,'Heads-up, then brew',()=>{}],[10*H+20*M,'Client call runs over',()=>{S.over={from:10.5*H};log('Demo: the client call is running over.')}],
+  [11*H+50*M,'New meeting lands',()=>{S.busy=merge(S.busy.concat({s:12*H+45*M,e:13*H}));replan('Demo: a 12:45 meeting was just added.')}],
+  [12*H+15*M,'Forgot the next pod',()=>{S.m.pod=false;S.m.cup=false;log('Demo: no pod in the machine.')}]];
+function startDemo(){const D=Object.assign(fresh(),{demo:true,onb:3,src:'sample',busy:SAMPLE.map(b=>({...b})),t:8*H+25*M,playing:false,speed:300,acc:0});
+  D.set.max=3;S=D;plan();log('Demo: sample day loaded. Planned '+S.plan.filter(p=>p.on).map(p=>fmt(p.at)).join(', ')+'.');render()}
+function demoBar(){if(!S.demo){$('demo').innerHTML='';return}const cur=inEvent(S.t);
+  $('demo').innerHTML='<div class="demo"><div class="top"><output>'+fmt(S.t)+'</output><button class="go" data-a="play" style="min-height:40px;padding:0 14px;border-radius:12px;font-weight:600">'+(S.playing?'Pause':'Play')+'</button><button data-a="next" style="background:#ffffff14;min-height:40px;padding:0 12px;border-radius:12px;font-weight:600">Next</button></div>'+
+   '<details><summary>Speed, script and problems</summary><div class="row" style="margin:6px 0">'+[[60,'1×'],[300,'5×'],[900,'15×']].map(([s,l])=>'<button data-a="spd" data-id="'+s+'" aria-pressed="'+(S.speed===s)+'">'+l+'</button>').join('')+'</div>'+
+   '<div class="row" style="margin-bottom:6px">'+STORY.map((s,i)=>'<button data-a="story" data-id="'+i+'" '+(s[0]<=S.t?'disabled':'')+'>'+fmt(s[0])+' '+s[1]+'</button>').join('')+'</div>'+
+   '<div class="row"><button data-a="over" '+(cur&&!S.over?'':'disabled')+'>Run call over</button><button data-a="endcall" '+(S.over?'':'disabled')+'>End call</button><button data-a="forget">Forget pod</button><button data-a="lowwater">Low water</button><button data-a="fullbin">Bin full</button><button data-a="restart">Restart</button><button data-a="exitdemo">Exit demo</button></div></details></div>'}
+function nextMoment(){const c=[];for(const p of S.plan)if(p.on&&!p.adhoc){const bs=p.at-prep(p.drink);c.push(p.at-30*M,bs-3*M,bs,p.at,p.at+2*M)}for(const e of S.busy)c.push(e.s,e.e);
+  return c.filter(x=>x>S.t+STEP).sort((a,b)=>a-b)[0]||S.set.end}
+
+/* ================= render & actions ================= */
+function syncBar(){const sb=$('sync');if(S.demo){sb.textContent='Demo';return}const s=REAL.sync||{};
+  sb.textContent=SRV[REAL.src]?(s.busy?'Syncing…':s.err?'Sync issue':s.at?'Synced '+new Date(s.at).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}):fmt(nowSec())):fmt(nowSec())}
+function render(keepView){lastRender=Date.now();const open=document.querySelector('.demo details')?.open;
+  if(!keepView){const y=scrollY;$('view').innerHTML=S.tab==='today'?today():S.tab==='machine'?machine():routine();if(Math.abs(scrollY-y)>2)scrollTo(0,y)}
+  $('nav').innerHTML=[['today','Today'],['machine','Machine'],['routine','Routine']].map(([k,l])=>'<button data-a="tab" data-id="'+k+'" aria-current="'+(S.tab===k)+'"><svg viewBox="0 0 24 24" aria-hidden="true">'+ICON[k]+'</svg>'+l+'</button>').join('');
+  const o=onb();if($('onb')._h!==o){$('onb').innerHTML=o;$('onb')._h=o}demoBar();if(open){const d=document.querySelector('.demo details');if(d)d.open=true}syncBar()}
+const find=k=>S.plan.find(p=>String(p.key)===String(k));
+const setChange=()=>{S.plan.forEach(p=>{if(PEND.includes(p.status)){p.touched=false;p.userOn=null}});replan()};
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const A={
+  tab:id=>{S.tab=id;S.open=null;scrollTo(0,0)},
+  onbnext:()=>{REAL.onb++},onbback:()=>{REAL.onb=Math.max(0,REAL.onb-1)},pick:()=>{REAL.onb=1},
+  src:id=>{REAL.src=id;REAL.sync={};if(SRV[id])sync();within(REAL,()=>replan())},
+  done:()=>{REAL.onb=3;REAL.t=nowSec();within(REAL,()=>{replan();step(REAL.t);log('Plan built: '+(S.plan.filter(p=>p.on&&PEND.includes(p.status)).map(p=>fmt(p.at)).join(', ')||'no gaps left today')+'.')})},
+  sync:()=>sync(),syncbar:()=>{if(SRV[REAL.src]&&!S.demo)sync()},
+  delb:id=>{REAL.manual=merge(REAL.manual).filter(b=>String(b.s)!==String(id));within(REAL,()=>replan('Busy time removed.'))},
+  'max-':()=>{S.set.max=clamp(S.set.max-1,1,6);setChange()},'max+':()=>{S.set.max=clamp(S.set.max+1,1,6);setChange()},
+  'cut-':()=>{S.set.cutoff=clamp(S.set.cutoff-30*M,S.set.start+H,21*H);setChange()},'cut+':()=>{S.set.cutoff=clamp(S.set.cutoff+30*M,S.set.start+H,21*H);setChange()},
+  'start-':()=>{S.set.start=clamp(S.set.start-30*M,5*H,S.set.cutoff-H);setChange()},'start+':()=>{S.set.start=clamp(S.set.start+30*M,5*H,S.set.cutoff-H);setChange()},
+  'walk-':()=>{S.set.walk=clamp(S.set.walk-1,1,10);setChange()},'walk+':()=>{S.set.walk=clamp(S.set.walk+1,1,10);setChange()},
+  'space-':()=>{S.set.spacing=clamp(S.set.spacing-15,30,240);setChange()},'space+':()=>{S.set.spacing=clamp(S.set.spacing+15,30,240);setChange()},
+  week:id=>{const o=['home','office','off'];S.set.week[+id]=o[(o.indexOf(S.set.week[+id])+1)%3];setChange()},
+  daytype:()=>{const o=['home','office','off'];S.type=o[(o.indexOf(dayType())+1)%3];log('Today is now a '+TYPES[S.type].toLowerCase()+'.');setChange()},
+  defd:id=>{S.set.drink=id;S.plan.forEach(p=>{if(PEND.includes(p.status))p.drink=id});setChange()},
+  auto:()=>{S.set.auto=!S.set.auto;log(S.set.auto?'Automation on.':'Manual mode on. Nothing brews by itself.')},heads:()=>S.set.heads=!S.set.heads,
+  notif:()=>{if(S.set.notif){S.set.notif=false;return}try{Notification.requestPermission().then(r=>{S.set.notif=r==='granted';if(!S.set.notif)notify('Notifications are blocked. Allow them for this site in your browser settings.');commit()})}catch(e){notify('This browser cannot show notifications.')}},
+  pause:()=>{S.paused=!S.paused;log(S.paused?'Automation paused for today.':'Automation resumed.')},
+  open:id=>{S.open=S.open===String(id)?null:String(id)},
+  tog:id=>{const p=find(id);p.on=!p.on;p.touched=true;p.userOn=p.on;log((p.on?'Added a coffee at ':'Removed the coffee at ')+fmt(p.at)+'.');replan()},
+  drink:v=>{const [k,d]=v.split('|'),p=find(k);p.drink=d;p.touched=true;p.userOn=p.on;replan()},
+  shift:v=>{const [k,s]=v.split('|'),p=find(k);p.shift=(p.shift||0)+(+s);p.touched=true;p.userOn=p.on;p.hu=false;replan()},
+  load:()=>{S.m.pod=true;S.m.cup=true;log('Pod and cup loaded.')},water:()=>{S.m.water=100;log('Water tank refilled.')},bin:()=>{S.m.bin=0;log('Capsule bin emptied.')},descale:()=>{S.m.descale=40;log('Descaling done.')},
+  collect:id=>collect(find(id),S.t,false),hold:id=>hold(find(id),S.t,'You tapped Hold'),later:id=>delay(find(id)),
+  release:id=>{const p=find(id);const pr=probs(p.drink);if(pr.length)notify('Cannot brew yet: '+pr[0]+'.');else brew(p,S.t)},
+  skip:id=>skip(find(id)),
+  brewd:id=>{S.brewD=id},
+  brewnow:()=>{const d=S.brewD||S.set.drink;if(probs(d).length)return;const p={adhoc:true,key:'m'+(++S.seq),drink:d,at:S.t+prep(d),gs:S.t,ge:S.t+30*M,on:true,status:'planned',why:'One-tap brew'};
+    S.plan.push(p);brew(p,S.t);notify(DR[d].n+' started. Ready at '+fmt(S.t+prep(d))+'.');replan()},
+  copy:()=>{const k=S.k,txt='Ritmo '+S.date+': '+k.onTime+' ready on time, '+k.cold+' gone cold, '+k.held+' held for overruns, '+k.saved+' min saved.';try{navigator.clipboard.writeText(txt).then(()=>notify('Stats copied.'),()=>notify(txt))}catch(e){notify(txt)}},
+  reset:()=>{S.confirmReset=true},resetno:()=>{S.confirmReset=false},
+  resetyes:()=>{try{localStorage.removeItem(KEY)}catch(e){}REAL=fresh();S=REAL;$('ban').classList.remove('show');scrollTo(0,0)},
+  play:()=>{S.playing=!S.playing},spd:id=>{S.speed=+id},next:()=>advance(nextMoment()),
+  story:id=>{const s=STORY[id];advance(s[0]);s[2]();log('Demo script: '+s[1]+'.')},
+  over:()=>{const e=inEvent(S.t);if(e){S.over={from:e.e};log('Demo: this call is running over.')}},endcall:()=>endCall(S.t,false),
+  forget:()=>{if(S.m.pod&&!['heating','brewing','ready'].includes(S.m.state)){S.m.pod=false;S.m.cup=false;log('Demo: no pod in the machine.')}else{S.forget=true;log('Demo: you will forget the next pod.')}},
+  lowwater:()=>{S.m.water=6;log('Demo: water tank is low.')},fullbin:()=>{S.m.bin=S.m.binMax;log('Demo: capsule bin is full.')},
+  restart:()=>startDemo(),exitdemo:()=>{S=REAL;$('ban').classList.remove('show');advance(nowSec())}
+};
+document.addEventListener('click',e=>{const bb=e.target.closest('[data-ban]');if(bb){const f=$('ban')._acts[+bb.dataset.ban];$('ban').classList.remove('show');if(f)f[1]();return}
+  const b=e.target.closest('[data-a]');if(!b||b.disabled)return;const f=A[b.dataset.a];if(f){f(b.dataset.id);commit()}});
+document.addEventListener('submit',e=>{if(e.target.id!=='addb')return;e.preventDefault();
+  const tm=v=>{const [h,m]=v.split(':').map(Number);return h*H+m*M},s=tm($('bs').value),en=tm($('be').value);
+  if(!(en>s)){notify('The end time needs to be after the start time.');return}
+  REAL.manual=merge(REAL.manual.concat({s,e:en}));within(REAL,()=>replan('Busy time added: '+fmt(s)+' – '+fmt(en)+'.'));
+  const nx=Math.min(en+30*M,23*H);commit();const bi=$('bs'),be=$('be');if(bi){bi.value=fmt(en);be.value=fmt(nx)}});
+document.addEventListener('change',e=>{if(e.target.id!=='icsf')return;const f=e.target.files&&e.target.files[0];if(!f)return;
+  if(f.size>8e6){notify('That file is over 8 MB. Export just your main calendar.');return}
+  f.text().then(txt=>{const ev=icsParse(txt);if(!ev.length){notify('No timed events found in that file.');return}
+    REAL.ics={ev,n:ev.length,name:f.name.slice(0,60),at:Date.now()};REAL.src='ics';within(REAL,()=>replan('Imported '+ev.length+' events. Today has '+busyNow().length+' busy blocks.'));commit()},()=>notify('Could not read that file.'))});
+let taps=[];$('logo').addEventListener('click',()=>{const n=Date.now();taps=taps.filter(x=>n-x<3000);taps.push(n);if(taps.length>=5){taps=[];if(S.demo)A.exitdemo();else startDemo();commit()}});
+document.addEventListener('visibilitychange',()=>{if(!document.hidden){realTick();if(SRV[REAL.src]&&REAL.onb>=3&&(!REAL.sync.at||Date.now()-REAL.sync.at>6e5))sync()}});
+setInterval(()=>{if(S.demo){if(!S.playing)return;S.acc+=S.speed*.25;const n=Math.floor(S.acc/STEP)*STEP;if(n){S.acc-=n;if(S.t>=S.set.end+H){S.playing=false;render();return}advance(S.t+n);render(S.tab==='routine')}}else realTick()},250);
+setInterval(()=>{if(!S.demo&&SRV[REAL.src]&&REAL.onb>=3&&!REAL.sync.busy)sync()},6e5);
+
+rollDay();within(REAL,()=>{S.busy=busyNow();if(REAL.onb>=3){advance(nowSec());replan()}});render();
+(async()=>{try{if(inClaude&&typeof claude.use==='function')mcp=await claude.use('mcp')}catch(e){mcp=null}if(SRV[REAL.src]&&REAL.onb>=1)sync();else render()})();
+if(!inClaude&&'serviceWorker' in navigator&&location.protocol==='https:')try{navigator.serviceWorker.register('sw.js').catch(()=>{})}catch(e){}
+}
+</script>
+</body>
+</html>
